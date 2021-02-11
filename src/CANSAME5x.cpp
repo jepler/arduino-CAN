@@ -11,6 +11,15 @@
 
 #include "same51.h"
 
+#define DEBUG_CAN (0)
+#if DEBUG_CAN
+#define DEBUG_PRINT(...) (Serial.print(__VA_ARGS__), ((void)0))
+#define DEBUG_PRINTLN(...) (Serial.println(__VA_ARGS__), ((void)0))
+#else
+#define DEBUG_PRINT(...) ((void)0)
+#define DEBUG_PRINTLN(...) ((void)0)
+#endif
+
 namespace {
 #include "CANSAME5x_port.h"
 }
@@ -129,8 +138,8 @@ EPioType find_pin(const can_function *table, size_t n, int arduino_pin,
   for (size_t i = 0; i < n; i++) {
     if (table[i].port == port && table[i].pin == pin) {
       if (instance == -1 || table[i].instance == instance) {
-        //Serial.print("found #");
-        //Serial.println(i);
+        DEBUG_PRINT("found #");
+        DEBUG_PRINTLN(i);
         instance = table[i].instance;
         return EPioType(table[i].mux);
       }
@@ -156,43 +165,41 @@ int CANSAME5x::begin(long baudrate) {
     return 0;
   }
 
-  /*
-  Serial.print("_rx ");
-  Serial.print(_rx);
-  Serial.print(" ulPort=");
-  Serial.print(g_APinDescription[_rx].ulPort);
-  Serial.print(" ulPin=");
-  Serial.println(g_APinDescription[_rx].ulPin);
+  DEBUG_PRINT("_rx ");
+  DEBUG_PRINT(_rx);
+  DEBUG_PRINT(" ulPort=");
+  DEBUG_PRINT(g_APinDescription[_rx].ulPort);
+  DEBUG_PRINT(" ulPin=");
+  DEBUG_PRINTLN(g_APinDescription[_rx].ulPin);
 
-  Serial.println("rx pin table");
+  DEBUG_PRINTLN("rx pin table");
   for (size_t i = 0; i < size(can_rx); i++) {
-    Serial.print(i);
-    Serial.print(" port=");
-    Serial.print(can_rx[i].port);
-    Serial.print(" pin=");
-    Serial.print(can_rx[i].pin);
-    Serial.print(" instance=");
-    Serial.println(can_rx[i].instance);
+    DEBUG_PRINT(i);
+    DEBUG_PRINT(" port=");
+    DEBUG_PRINT(can_rx[i].port);
+    DEBUG_PRINT(" pin=");
+    DEBUG_PRINT(can_rx[i].pin);
+    DEBUG_PRINT(" instance=");
+    DEBUG_PRINTLN(can_rx[i].instance);
   }
 
-  Serial.print("_tx ");
-  Serial.print(_tx);
-  Serial.print(" ulPort=");
-  Serial.print(g_APinDescription[_tx].ulPort);
-  Serial.print(" ulPin=");
-  Serial.println(g_APinDescription[_tx].ulPin);
+  DEBUG_PRINT("_tx ");
+  DEBUG_PRINT(_tx);
+  DEBUG_PRINT(" ulPort=");
+  DEBUG_PRINT(g_APinDescription[_tx].ulPort);
+  DEBUG_PRINT(" ulPin=");
+  DEBUG_PRINTLN(g_APinDescription[_tx].ulPin);
 
-  Serial.println("tx pin table");
+  DEBUG_PRINTLN("tx pin table");
   for (size_t i = 0; i < size(can_tx); i++) {
-    Serial.print(i);
-    Serial.print(" port=");
-    Serial.print(can_tx[i].port);
-    Serial.print(" pin=");
-    Serial.print(can_tx[i].pin);
-    Serial.print(" instance=");
-    Serial.println(can_tx[i].instance);
+    DEBUG_PRINT(i);
+    DEBUG_PRINT(" port=");
+    DEBUG_PRINT(can_tx[i].port);
+    DEBUG_PRINT(" pin=");
+    DEBUG_PRINT(can_tx[i].pin);
+    DEBUG_PRINT(" instance=");
+    DEBUG_PRINTLN(can_tx[i].instance);
   }
-  */
 
   int instance = -1;
   EPioType tx_function = find_pin(can_tx, size(can_tx), _tx, instance);
@@ -340,6 +347,8 @@ int CANSAME5x::endPacket() {
     return 0;
   }
 
+  bus_autorecover();
+
   // TODO wait for TX buffer to free
 
   _canSAME5x_tx_buf &buf = state->tx_buffer[0];
@@ -409,6 +418,7 @@ int CANSAME5x::_parsePacket() {
 
 int CANSAME5x::parsePacket() {
   cpu_irq_enter_critical();
+  bus_autorecover();
   int result = _parsePacket();
   cpu_irq_leave_critical();
   return result;
@@ -481,21 +491,17 @@ int CANSAME5x::observe() {
 
 int CANSAME5x::loopback() {
   hw->CCCR.bit.INIT = 1;
-  Serial.println("loopback start");
   while (!hw->CCCR.bit.INIT) {
   }
   hw->CCCR.bit.CCE = 1;
 
   hw->CCCR.bit.TEST = 1;
   hw->TEST.bit.LBCK = 1;
-  Serial.println("loopback b");
 
   hw->CCCR.bit.CCE = 0;
   hw->CCCR.bit.INIT = 0;
-  Serial.println("loopback c");
   while (hw->CCCR.bit.INIT) {
   }
-  Serial.println("loopback d");
   return 1;
 }
 
@@ -522,6 +528,16 @@ int CANSAME5x::wakeup() {
   }
   return 1;
 }
+
+void CANSAME5x::bus_autorecover() {
+  if (hw->PSR.bit.BO) {
+    DEBUG_PRINTLN("bus autorecovery activated");
+    hw->CCCR.bit.INIT = 0;
+    while (hw->CCCR.bit.INIT) {
+    }
+  }
+}
+
 void CANSAME5x::onInterrupt() {
   for (int i = 0; i < size(instances); i++) {
     CANSAME5x *instance = instances[i];
