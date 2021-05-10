@@ -9,8 +9,6 @@
 #include "CANSAME5x.h"
 #include "wiring_private.h"
 
-#include "same51.h"
-
 #define DEBUG_CAN (0)
 #if DEBUG_CAN
 #define DEBUG_PRINT(...) (Serial.print(__VA_ARGS__), ((void)0))
