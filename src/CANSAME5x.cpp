@@ -456,6 +456,8 @@ int CANSAME5x::filter(int id, int mask) {
   state->extended_rx_filter[0].XIDFE_0.bit.EFEC = CAN_XIDFE_0_EFEC_REJECT_Val;
   state->extended_rx_filter[0].XIDFE_1.bit.EFID2 = 0; // mask
   state->extended_rx_filter[0].XIDFE_1.bit.EFT = CAN_XIDFE_1_EFT_CLASSIC_Val;
+
+  return 1;
 }
 
 int CANSAME5x::filterExtended(long id, long mask) {
@@ -465,11 +467,13 @@ int CANSAME5x::filterExtended(long id, long mask) {
   state->standard_rx_filter[0].SIDFE_0.bit.SFEC = CAN_SIDFE_0_SFEC_REJECT_Val;
   state->standard_rx_filter[0].SIDFE_0.bit.SFT = CAN_SIDFE_0_SFT_CLASSIC_Val;
 
-  // reject all extended messages
+  // accept matching extended messages
   state->extended_rx_filter[0].XIDFE_0.bit.EFID1 = id;
   state->extended_rx_filter[0].XIDFE_0.bit.EFEC = CAN_XIDFE_0_EFEC_STF0M_Val;
   state->extended_rx_filter[0].XIDFE_1.bit.EFID2 = mask;
   state->extended_rx_filter[0].XIDFE_1.bit.EFT = CAN_XIDFE_1_EFT_CLASSIC_Val;
+
+  return 1;
 }
 
 int CANSAME5x::observe() {
