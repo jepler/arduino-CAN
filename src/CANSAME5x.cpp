@@ -94,7 +94,7 @@ struct _canSAME5x_rx_fifo {
   CAN_RXF0E_0_Type rxf0;
   CAN_RXF0E_1_Type rxf1;
   __attribute((aligned(4))) uint8_t data[ADAFRUIT_ZEROCAN_MAX_MESSAGE_LENGTH];
-} can_rx_fifo_t;
+};
 
 struct _canSAME5x_state {
   _canSAME5x_tx_buf tx_buffer[ADAFRUIT_ZEROCAN_TX_BUFFER_SIZE];
@@ -127,7 +127,7 @@ bool compute_nbtp(uint32_t baudrate, CAN_NBTP_Type &result) {
 
 EPioType find_pin(const can_function *table, size_t n, int arduino_pin,
                   int &instance) {
-  if (arduino_pin < 0 || arduino_pin > PINS_COUNT) {
+  if (arduino_pin < 0 || (unsigned)arduino_pin > PINS_COUNT) {
     return (EPioType)-1;
   }
 
@@ -217,7 +217,7 @@ int CANSAME5x::begin(long baudrate) {
   _hw = reinterpret_cast<void *>(_idx == 0 ? CAN0 : CAN1);
   _state = reinterpret_cast<void *>(&can_state[_idx]);
 
-  memset(state, 0, sizeof(*state));
+  memset(this->_state, 0, sizeof(*state));
 
   pinPeripheral(_tx, tx_function);
   pinPeripheral(_rx, rx_function);
@@ -541,7 +541,7 @@ void CANSAME5x::bus_autorecover() {
 }
 
 void CANSAME5x::onInterrupt() {
-  for (int i = 0; i < size(instances); i++) {
+  for (size_t i = 0; i < size(instances); i++) {
     CANSAME5x *instance = instances[i];
     if (instance) {
       instance->handleInterrupt();
