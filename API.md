@@ -15,7 +15,7 @@ Initialize the library with the specified bit rate.
 ```arduino
 CAN.begin(bitrate);
 ```
- * `bitrate` - bit rate in bits per seconds (bps) (`1000E3`, `500E3`, `250E3`, `200E3`, `125E3`, `100E3`, `80E3`, `50E3`, `40E3`, `20E3`, `10E3`, `5E3`)
+ * `bitrate` - bit rate in bits per seconds (bps) (`1000E3`, `500E3`, `250E3`, `200E3`, `125E3`, `100E3`, `80E3`, `50E3`, `40E3`, `33E3`, `20E3`, `10E3`, `5E3`)
 
 Returns `1` on success, `0` on failure.
 
