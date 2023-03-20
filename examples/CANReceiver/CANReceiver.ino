@@ -9,6 +9,14 @@ void setup() {
 
   Serial.println("CAN Receiver");
 
+  // if using the Adafruit-M4-CAN-EXPRESS as shown in these examples
+  // https://learn.adafruit.com/adafruit-feather-m4-can-express/arduino-can-examples
+  // add the following lines
+  pinMode(PIN_CAN_STANDBY, OUTPUT);
+  digitalWrite(PIN_CAN_STANDBY, false); // turn off STANDBY
+  pinMode(PIN_CAN_BOOSTEN, OUTPUT);
+  digitalWrite(PIN_CAN_BOOSTEN, true); // turn on booster
+
   // start the CAN bus at 500 kbps
   if (!CAN.begin(500E3)) {
     Serial.println("Starting CAN failed!");
