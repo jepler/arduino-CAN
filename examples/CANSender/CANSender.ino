@@ -11,11 +11,13 @@ void setup() {
 
   // if using the Adafruit-M4-CAN-EXPRESS as show in these examples
   // https://learn.adafruit.com/adafruit-feather-m4-can-express/arduino-can-examples
-  // add the following lines
+  // enable the following settings
+  #if defined(ADAFRUIT_FEATHER_M4_CAN)
   pinMode(PIN_CAN_STANDBY, OUTPUT);
   digitalWrite(PIN_CAN_STANDBY, false); // turn off STANDBY
   pinMode(PIN_CAN_BOOSTEN, OUTPUT);
   digitalWrite(PIN_CAN_BOOSTEN, true); // turn on booster
+  #endif
 
   // start the CAN bus at 500 kbps
   if (!CAN.begin(500E3)) {
